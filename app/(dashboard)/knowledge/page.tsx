@@ -70,7 +70,7 @@ export default function KnowledgePage() {
             <h2 className="text-2xl font-serif font-bold text-ayur-green-900 mb-2">Ayurvedic Wisdom</h2>
             <p className="text-muted-foreground">Select an article from the list to explore traditional Ayurvedic concepts, routines, and philosophy.</p>
           </div>
-        ) : (
+        ) : !selectedArticle ? null : (
           <div className="max-w-3xl mx-auto space-y-8 pb-12">
             <button 
               onClick={() => setSelectedArticleId(null)}
