@@ -60,8 +60,8 @@ function ChatContent() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
 
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
+      // Only add the assistant message once we start getting content
+      let assistantAdded = false;
       let streamed = '';
       let done = false;
 
@@ -70,19 +70,32 @@ function ChatContent() {
         done = readerDone;
         if (value) {
           streamed += decoder.decode(value, { stream: true });
-          setMessages((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1] = { role: 'assistant', content: streamed };
-            return updated;
-          });
+          if (!assistantAdded) {
+            assistantAdded = true;
+            setMessages((prev) => [...prev, { role: 'assistant', content: streamed }]);
+          } else {
+            setMessages((prev) => {
+              const updated = [...prev];
+              updated[updated.length - 1] = { role: 'assistant', content: streamed };
+              return updated;
+            });
+          }
         }
+      }
+
+      // If stream closed with no content, remove the user message too so history stays clean
+      if (!assistantAdded) {
+        setMessages((prev) => prev.slice(0, -1));
+        throw new Error('The AI returned an empty response. Please try again.');
       }
     } catch (error: any) {
       console.error('Chat error:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `⚠️ **Error:** ${error.message || 'Could not connect to the AI. Please check your API key and try again.'}` }
-      ]);
+      // Remove any partial assistant message that may have been added
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && !last.content) return prev.slice(0, -1);
+        return [...prev, { role: 'assistant', content: `⚠️ **Error:** ${error.message || 'Could not connect to the AI. Please try again.'}` }];
+      });
     } finally {
       setIsLoading(false);
     }
