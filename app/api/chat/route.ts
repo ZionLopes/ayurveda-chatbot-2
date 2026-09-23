@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { checkEmergency, EMERGENCY_RESPONSE } from '@/lib/safety';
 
+export const runtime = 'edge';
+
 const AYURVEDA_SYSTEM_PROMPT = `You are AyurVeda AI, a friendly and knowledgeable Ayurvedic wellness assistant. You provide educational information about Ayurveda — the ancient Indian science of life.
 
 You can help with:
